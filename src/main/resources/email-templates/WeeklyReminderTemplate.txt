@@ -1,0 +1,8 @@
+Subject: Weekly Timesheet Reminder
+
+Hi ${name},
+
+This is a friendly reminder to fill in and submit your weekly timesheet.
+
+Thanks,
+Clover Bay Technology
