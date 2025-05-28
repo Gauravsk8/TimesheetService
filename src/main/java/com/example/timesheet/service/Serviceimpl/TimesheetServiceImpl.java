@@ -460,12 +460,10 @@ public class TimesheetServiceImpl implements TimesheetService{
             List<FilterRequest> filters,
             List<SortRequest> sorts) {
 
-        /* ---------- paging ---------- */
         if (offset < 0) offset = 0;
-        if (limit  <= 0) limit  = 10;
+        if (limit <= 0) limit = 10;
         int page = offset / limit;
 
-        /* ---------- convert embedded-ID filters ---------- */
         List<Specification<TimesheetSummary>> extraSpecs = new ArrayList<>();
 
         if (filters != null) {
@@ -500,15 +498,7 @@ public class TimesheetServiceImpl implements TimesheetService{
             }
         }
 
-        /* ---------- always sort by employeeCode ASC ---------- */
-        Sort sort = Sort.by(Sort.Direction.ASC, "id.employeeCode");
-        Pageable pageable = PageRequest.of(page, limit, sort);
-
-        Specification<TimesheetSummary> yearMonthSpec = (root, q, cb) -> cb.and(
-                cb.equal(root.get("id").get("timesheetYear"),  year),
-                cb.equal(root.get("id").get("timesheetMonth"), month)
-        );
-
+        // Get employees under manager
         List<String> employeeCodes = Optional.ofNullable(
                         identityServiceClient.getEmployeesUnderManager(managerCode).getBody())
                 .orElse(Collections.emptyList())
@@ -517,17 +507,30 @@ public class TimesheetServiceImpl implements TimesheetService{
                 .toList();
 
         if (employeeCodes.isEmpty()) {
-            return new PagedResponse<>(List.of(), 0, limit, 0);
+            return new PagedResponse<>(List.of(), page, limit, 0);
         }
 
-        Specification<TimesheetSummary> employeeSpec = (root, q, cb) ->
-                root.get("id").get("employeeCode").in(employeeCodes);
+        // Calculate paged employees
+        int fromIndex = Math.min(offset, employeeCodes.size());
+        int toIndex = Math.min(fromIndex + limit, employeeCodes.size());
+        List<String> pagedEmployeeCodes = employeeCodes.subList(fromIndex, toIndex);
 
-        /* ---------- dynamic spec for remaining filters ---------- */
+        if (pagedEmployeeCodes.isEmpty()) {
+            return new PagedResponse<>(List.of(), page, limit, employeeCodes.size());
+        }
+
+        // Final spec for paged employees
+        Specification<TimesheetSummary> yearMonthSpec = (root, q, cb) -> cb.and(
+                cb.equal(root.get("id").get("timesheetYear"), year),
+                cb.equal(root.get("id").get("timesheetMonth"), month)
+        );
+
+        Specification<TimesheetSummary> employeeSpec = (root, q, cb) ->
+                root.get("id").get("employeeCode").in(pagedEmployeeCodes);
+
         Specification<TimesheetSummary> dynamicSpec =
                 new FilterSpecificationBuilder<TimesheetSummary>().build(filters);
 
-        /* ---------- combine all specs ---------- */
         Specification<TimesheetSummary> finalSpec = Specification
                 .where(yearMonthSpec)
                 .and(employeeSpec)
@@ -537,18 +540,17 @@ public class TimesheetServiceImpl implements TimesheetService{
             finalSpec = finalSpec.and(sp);
         }
 
-        /* ---------- query ---------- */
-        Page<TimesheetSummary> summaryPage =
-                timesheetSummaryRepository.findAll(finalSpec, pageable);
+        List<TimesheetSummary> summaries =
+                timesheetSummaryRepository.findAll(finalSpec, Sort.by("id.employeeCode", "id.weekStart"));
 
-        if (summaryPage.isEmpty()) {
+        if (summaries.isEmpty()) {
             throw new TimeSheetException(
                     NOT_FOUND_ERROR,
                     ErrorMessage.NO_TIMESHEET_SUMMARIES_FOUND
             );
         }
 
-        List<ManagerApprovalRequestDto> content = summaryPage.getContent().stream()
+        List<ManagerApprovalRequestDto> content = summaries.stream()
                 .map(s -> {
                     ManagerApprovalRequestDto dto = new ManagerApprovalRequestDto();
                     dto.setEmployeeCode(s.getId().getEmployeeCode());
@@ -562,14 +564,14 @@ public class TimesheetServiceImpl implements TimesheetService{
                 })
                 .toList();
 
+        // totalElements = employeeCodes.size()
         return new PagedResponse<>(
                 content,
-                summaryPage.getNumber(),
-                summaryPage.getSize(),
-                summaryPage.getTotalElements()
+                page,
+                limit,
+                employeeCodes.size()
         );
     }
-
 
     @Override
     @Transactional
@@ -615,15 +617,6 @@ public class TimesheetServiceImpl implements TimesheetService{
             }
         }
 
-        // Fixed sort by employeeCode
-        Sort sort = Sort.by(Sort.Direction.ASC, "id.employeeCode");
-        Pageable pageable = PageRequest.of(page, limit, sort);
-
-        Specification<TimesheetSummary> yearMonthSpec = (root, q, cb) -> cb.and(
-                cb.equal(root.get("id").get("timesheetYear"), year),
-                cb.equal(root.get("id").get("timesheetMonth"), month)
-        );
-
         List<String> employeeCodes = Optional.ofNullable(identityServiceClient.getAllUsersList().getBody())
                 .orElse(Collections.emptyList())
                 .stream()
@@ -631,11 +624,24 @@ public class TimesheetServiceImpl implements TimesheetService{
                 .toList();
 
         if (employeeCodes.isEmpty()) {
-            return new PagedResponse<>(List.of(), 0, limit, 0);
+            return new PagedResponse<>(List.of(), page, limit, 0);
         }
 
+        int fromIndex = Math.min(offset, employeeCodes.size());
+        int toIndex = Math.min(fromIndex + limit, employeeCodes.size());
+        List<String> pagedEmployeeCodes = employeeCodes.subList(fromIndex, toIndex);
+
+        if (pagedEmployeeCodes.isEmpty()) {
+            return new PagedResponse<>(List.of(), page, limit, employeeCodes.size());
+        }
+
+        Specification<TimesheetSummary> yearMonthSpec = (root, q, cb) -> cb.and(
+                cb.equal(root.get("id").get("timesheetYear"), year),
+                cb.equal(root.get("id").get("timesheetMonth"), month)
+        );
+
         Specification<TimesheetSummary> employeeSpec = (root, q, cb) ->
-                root.get("id").get("employeeCode").in(employeeCodes);
+                root.get("id").get("employeeCode").in(pagedEmployeeCodes);
 
         Specification<TimesheetSummary> dynamicSpec =
                 new FilterSpecificationBuilder<TimesheetSummary>().build(filters);
@@ -649,17 +655,17 @@ public class TimesheetServiceImpl implements TimesheetService{
             finalSpec = finalSpec.and(sp);
         }
 
-        Page<TimesheetSummary> summaryPage =
-                timesheetSummaryRepository.findAll(finalSpec, pageable);
+        List<TimesheetSummary> summaries =
+                timesheetSummaryRepository.findAll(finalSpec, Sort.by("id.employeeCode", "id.weekStart"));
 
-        if (summaryPage.isEmpty()) {
+        if (summaries.isEmpty()) {
             throw new TimeSheetException(
                     NOT_FOUND_ERROR,
                     ErrorMessage.NO_TIMESHEET_SUMMARIES_FOUND
             );
         }
 
-        List<ManagerApprovalRequestDto> content = summaryPage.getContent().stream()
+        List<ManagerApprovalRequestDto> content = summaries.stream()
                 .map(s -> {
                     ManagerApprovalRequestDto dto = new ManagerApprovalRequestDto();
                     dto.setEmployeeCode(s.getId().getEmployeeCode());
@@ -674,10 +680,12 @@ public class TimesheetServiceImpl implements TimesheetService{
 
         return new PagedResponse<>(
                 content,
-                summaryPage.getNumber(),
-                summaryPage.getSize(),
-                summaryPage.getTotalElements()
+                page,
+                limit,
+                employeeCodes.size()
         );
     }
+
+
 
 }
