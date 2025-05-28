@@ -53,7 +53,7 @@ public class TimesheetController {
 
     //view timesheet
     @GetMapping("/timesheets/{employeeCode}")
-    //  @RequiresKeycloakAuthorization(resource = "tms:rmemp", scope = "tms:timesheet:get")
+     @RequiresKeycloakAuthorization(resource = "tms:rmemp", scope = "tms:timesheet:get")
     public ResponseEntity<List<TimesheetMatrixRowResponseDto>> getTimesheet(@PathVariable String employeeCode,
                                                                                      @RequestParam Integer year, @RequestParam Integer month) {
         List<TimesheetMatrixRowResponseDto> summaries = timesheetService.getEmployeeTimesheet(employeeCode, year, month);
