@@ -4,6 +4,7 @@ import com.example.timesheet.dto.response.ProjectManagerDashboard.ProjectManager
 import com.example.timesheet.models.TimesheetSummary;
 import com.example.timesheet.keys.TimesheetSummaryId;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -13,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public interface TimesheetSummaryRepository extends JpaRepository<TimesheetSummary, TimesheetSummaryId> {
+public interface TimesheetSummaryRepository extends JpaRepository<TimesheetSummary, TimesheetSummaryId>, JpaSpecificationExecutor<TimesheetSummary> {
 
     List<TimesheetSummary> findByIdEmployeeCode(String employeeCode);
 

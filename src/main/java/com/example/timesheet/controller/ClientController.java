@@ -79,5 +79,13 @@ public class ClientController {
         String response = clientService.updateClientStatus(id, active);
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/clients/all")
+    @RequiresKeycloakAuthorization(resource = "tms:adminccmpm", scope = "tms:client:get")
+    public ResponseEntity<List<ClientResponseDto>> getAllClients() {
+        List<ClientResponseDto> response = clientService.getAllClientsProject();
+        return ResponseEntity.ok(response);
+    }
+
 }
 

@@ -49,6 +49,13 @@ public class CostCenterController {
         return ResponseEntity.ok(costCenterService.getAllCostCenters(offset, limit, filters, sorts));
     }
 
+    @GetMapping("/cost-centers/all")
+    @RequiresKeycloakAuthorization(resource = "tms:adminccmpm", scope = "tms:costcenter:get")
+    public ResponseEntity<List<CostCenterResponseDto>> getAllCostCenters() {
+        return ResponseEntity.ok(costCenterService.getAllCostCentersProjects());
+    }
+
+
     //Get cost-center under CCM
     @GetMapping("/cost-centers/manager/{costCenterManagerCode}")
     @RequiresKeycloakAuthorization(resource = "tms:ccm", scope = "tms:costcenter:get")

@@ -141,4 +141,28 @@ public class ClientServiceImpl implements ClientService {
         Clients savedClient = clientsRepository.save(client);
         return String.format(MessageConstants.CLIENT_STATUS_UPDATED, savedClient.getName());
     }
+
+    @Override
+    public List<ClientResponseDto> getAllClientsProject() {
+        List<Clients> activeClients = clientsRepository.findByIsActiveTrue();
+
+        if (activeClients.isEmpty()) {
+            throw new TimeSheetException(
+                    ErrorCode.NOT_FOUND_ERROR,
+                    ErrorMessage.NO_ACTIVE_CLIENTS_FOUND
+            );
+        }
+
+        return activeClients.stream()
+                .map(client -> new ClientResponseDto(
+                        client.getId(),
+                        client.getName(),
+                        client.getContactPerson(),
+                        client.getContactEmail(),
+                        client.getAddress(),
+                        client.isActive()
+                ))
+                .toList();
+    }
+
 }

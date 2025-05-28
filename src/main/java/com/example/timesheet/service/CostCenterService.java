@@ -23,4 +23,7 @@ public interface CostCenterService {
     String updateCostCenterStatus(String costCenterCode, boolean newStatus) throws TimeSheetException;
     List<CostCenterResponseDto> getAllCostCentersUnderManager(String costCenterManagerCode);
     List<ProjectResponseDto> getProjectsByCostCenterCode(String costCenterCode);
+
+    List<CostCenterResponseDto> getAllCostCentersProjects();
+
 }

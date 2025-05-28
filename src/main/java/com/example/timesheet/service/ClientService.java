@@ -21,4 +21,5 @@ public interface ClientService {
     Optional<ClientResponseDto> getClientById(Long id);
     String updateClient(Long id, ClientDto dto) throws TimeSheetException;
     String updateClientStatus(Long id, boolean active) throws TimeSheetException;
+    List<ClientResponseDto> getAllClientsProject();
 }

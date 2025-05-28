@@ -5,12 +5,13 @@ import com.example.timesheet.keys.ProjectEmployeeId;
 import com.example.timesheet.models.Project;
 import com.example.timesheet.models.ProjectEmployee;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.*;
 
-public interface ProjectEmployeeRepository extends JpaRepository<ProjectEmployee, ProjectEmployeeId> {
+public interface ProjectEmployeeRepository extends JpaRepository<ProjectEmployee, ProjectEmployeeId>, JpaSpecificationExecutor<ProjectEmployee> {
 
     List<ProjectEmployee> findByIdEmployeeCodeIgnoreCaseAndIsActiveTrue(String employeeCode);
 

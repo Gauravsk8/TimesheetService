@@ -15,7 +15,9 @@ public final class MessageConstants {
     // === Project Messages ===
     public static final String PROJECT_CREATED = "Project Created: ";
     public static final String PROJECT_UPDATE = "Project Updated: ";
-    public static final String PROJECT_STATUS_UPDATED = "Updated Employee status of %s in project %s";
+    public static final String PROJECT_EMPLOYEE_STATUS_UPDATED = "Updated Employee status of %s in project %s";
+
+    public static final String PROJECT_STATUS_UPDATED = "Project %s status updated";
 
     // === Employee Assignment Messages ===
     public static final String CREATION_EMAIL = "Timesheet Application Login Credentials";
@@ -42,6 +44,9 @@ public final class MessageConstants {
     public static final String TIMESHEET_REJECTED_BY_MANAGER =
             "Timesheet of employee %s for week starting %s has been rejected by manager %s for correction.";
     public static final String APPROVED_ALL_TIMESHEETS_FOR_WEEK = "Approve All Timesheet For The week";
+    public static final String PROJECT_ROLE_CREATED = "Project role crated";
+    public static final String PROJECT_ROLE_UPDATED = "Project role updated";
+    public static final String DELETED_PROJECT_ROLE = "Project role deleted";
 
     // Private constructor to prevent instantiation
     private MessageConstants() {

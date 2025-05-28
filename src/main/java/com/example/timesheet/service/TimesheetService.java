@@ -1,5 +1,8 @@
 package com.example.timesheet.service;
 
+import com.example.timesheet.dto.pagenationDto.FilterRequest;
+import com.example.timesheet.dto.pagenationDto.SortRequest;
+import com.example.timesheet.dto.pagenationDto.response.PagedResponse;
 import com.example.timesheet.dto.request.DailyTimesheetDto;
 import com.example.timesheet.dto.request.ManagerApprovalRequestDto;
 import com.example.timesheet.dto.request.TimesheetSummaryDto;
@@ -17,6 +20,13 @@ public interface TimesheetService {
     String saveDailyEntry(DailyTimesheetDto dtos) throws TimeSheetException;
     String submitTimesheetSummary(TimesheetSummaryDto dto) throws TimeSheetException;
     String approveOrRejectWeekly(ManagerApprovalRequestDto dto) throws TimeSheetException;
+    PagedResponse<ManagerApprovalRequestDto> getEmployeesTimesheetUnderManager(
+            String managerCode, int year, int month, int offset, int limit,
+            List<FilterRequest> filters, List<SortRequest> sorts);
+
+    PagedResponse<ManagerApprovalRequestDto> getEmployeesTimesheet(
+            int year, int month, int offset, int limit,
+            List<FilterRequest> filters, List<SortRequest> sorts);
 
     DailyTimesheetResponseWithStatus getDailyEntries(String employeeCode, Date weekStart) throws TimeSheetException;
     void saveTimesheetSummary(TimesheetSummaryDto dto);

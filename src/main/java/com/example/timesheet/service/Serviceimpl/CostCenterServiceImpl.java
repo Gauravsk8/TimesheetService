@@ -169,4 +169,21 @@ public class CostCenterServiceImpl implements CostCenterService {
                 .isActive(project.isActive())
                 .build();
     }
+
+    @Override
+    public List<CostCenterResponseDto> getAllCostCentersProjects() {
+        List<CostCenter> activeCostCenters = costCenterRepository.findByIsActiveTrue();
+
+        if (activeCostCenters.isEmpty()) {
+            throw new TimeSheetException(
+                    ErrorCode.NOT_FOUND_ERROR,
+                    ErrorMessage.NO_ACTIVE_COST_CENTERS_FOUND
+            );
+        }
+
+        return activeCostCenters.stream()
+                .map(this::mapToCostCenterResponseDto)
+                .collect(Collectors.toList());
+    }
+
 }

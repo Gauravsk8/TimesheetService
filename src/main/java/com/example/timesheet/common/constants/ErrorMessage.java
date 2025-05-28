@@ -63,6 +63,8 @@ public final class ErrorMessage {
     public static final String STATUS_NOT_FOUND = "Status not found";
     public static final String NO_ACTIVE_USERS_FOUND = "No active users found";
     public static final String PROJECT_ROLE_ALREADY_CREATED = "Project Role already Created";
+    public static final String PROJECT_ROLE_NOT_FOUND = "Project Role not found";
+    public static final String NO_TIMESHEET_SUMMARIES_FOUND = "No timesheet summaries found";
 
     private ErrorMessage() {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");

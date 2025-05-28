@@ -28,11 +28,13 @@ public class ManagerApprovalRequestDto {
 
     private boolean approve;
 
-    @NotBlank(message = "managerCode is required")
+
     private String managerCode;
 
     @Size(max = 500, message = "comment must be less than 500 characters")
     private String comment;
+
+    private Double hours;
 
     @NotNull(message = "dailyTimeSheetRequests cannot be null")
     @Size(min = 1, message = "At least one daily timesheet entry is required")

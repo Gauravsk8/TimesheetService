@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -86,7 +87,29 @@ public class ProjectManagementServiceImpl implements ProjectManagementService {
         ProjectRoles newRole = new ProjectRoles();
         newRole.setRoleName(dto.getRoleName());
         rolesInProjectRepository.save(newRole);
-        return "Role created successfully";
+        return MessageConstants.PROJECT_ROLE_CREATED;
+    }
+    @Override
+    public String updateRolesInProject(ProjectRolesRequestDto dto, Long roleId) {
+        ProjectRoles roles = rolesInProjectRepository.findById(roleId).orElseThrow(() -> new TimeSheetException(
+                ErrorCode.NOT_FOUND_ERROR,
+                ErrorMessage.PROJECT_ROLE_NOT_FOUND));
+
+        roles.setRoleName(dto.getRoleName());
+        rolesInProjectRepository.save(roles);
+        return MessageConstants.PROJECT_ROLE_UPDATED;
+    }
+    @Override
+    public String getRolesInProject(Long roleId) {
+        ProjectRoles roles = rolesInProjectRepository.findById(roleId).orElseThrow(() -> new TimeSheetException(
+                ErrorCode.NOT_FOUND_ERROR,
+                ErrorMessage.PROJECT_ROLE_NOT_FOUND));
+        return roles.toString();
+    }
+    @Override
+    public String deleteRolesInProject(Long roleId) {
+        rolesInProjectRepository.deleteById(roleId);
+        return MessageConstants.DELETED_PROJECT_ROLE;
     }
     @Override
     public List<String> getAllRoleNames() {
@@ -308,7 +331,7 @@ public class ProjectManagementServiceImpl implements ProjectManagementService {
         projectEmployee.setActive(newStatus);  // <-- set the new status
         projectEmployeeRepository.save(projectEmployee);
 
-        return String.format(MessageConstants.PROJECT_STATUS_UPDATED, employeeCode, projectCode);
+        return String.format(MessageConstants.PROJECT_EMPLOYEE_STATUS_UPDATED, employeeCode, projectCode);
     }
 
     @Override
@@ -331,7 +354,7 @@ public class ProjectManagementServiceImpl implements ProjectManagementService {
         projectEmployee.setEndDate(dto.getEndDate());
         projectEmployee.setRole_in_project(dto.getRole_in_project());
         projectEmployeeRepository.save(projectEmployee);
-        return String.format(MessageConstants.PROJECT_STATUS_UPDATED, employeeCode, projectCode);
+        return String.format(MessageConstants.PROJECT_EMPLOYEE_STATUS_UPDATED, employeeCode, projectCode);
     }
 
     @Override

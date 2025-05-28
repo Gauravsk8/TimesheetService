@@ -39,4 +39,7 @@ public interface ProjectManagementService {
     List<ProjectDto> getProjectsByEmployeeCode(String employeeCode);
     List<Map<String, String>> getUnassignedUsersForProject(String projectCode) throws TimeSheetException;
     List<ProjectWithEmployeesDto> getProjectsWithEmployeesUnderManager(String projectManagerCode);
+    String updateRolesInProject(ProjectRolesRequestDto dto, Long roleID);
+    String getRolesInProject(Long roleID);
+    String deleteRolesInProject(Long roleID);
 }

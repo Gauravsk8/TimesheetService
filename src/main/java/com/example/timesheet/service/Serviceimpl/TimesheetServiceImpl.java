@@ -5,6 +5,9 @@ import com.example.timesheet.client.IdentityServiceClient;
 import com.example.timesheet.common.constants.ErrorCode;
 import com.example.timesheet.common.constants.ErrorMessage;
 import com.example.timesheet.common.constants.MessageConstants;
+import com.example.timesheet.dto.pagenationDto.FilterRequest;
+import com.example.timesheet.dto.pagenationDto.SortRequest;
+import com.example.timesheet.dto.pagenationDto.response.PagedResponse;
 import com.example.timesheet.dto.request.*;
 import com.example.timesheet.dto.response.*;
 import com.example.timesheet.dto.response.EmployeeDashboard.EmployeeDashboardDto;
@@ -22,10 +25,17 @@ import com.example.timesheet.keys.TimesheetSummaryId;
 import com.example.timesheet.Repository.*;
 
 import com.example.timesheet.service.TimesheetService;
+import com.example.timesheet.utils.FilterSpecificationBuilder;
+import com.example.timesheet.utils.SortUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.sql.Date;
 import java.sql.Timestamp;
@@ -36,6 +46,8 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.example.timesheet.common.constants.ErrorCode.NOT_FOUND_ERROR;
 
 @Service
 @RequiredArgsConstructor
@@ -60,13 +72,13 @@ public class TimesheetServiceImpl implements TimesheetService{
                 ProjectEmployeeId peid = new ProjectEmployeeId(dto.getProjectCode(), dto.getEmployeeCode());
                 if (!projectEmployeeRepository.existsById(peid)) {
                     throw new TimeSheetException(
-                            ErrorCode.NOT_FOUND_ERROR,
+                            NOT_FOUND_ERROR,
                             String.format(ErrorMessage.ASSIGNMENT_NOT_FOUND, dto.getProjectCode(), dto.getEmployeeCode())
                     );
                 }
 
                 project = projectRepository.findById(dto.getProjectCode())
-                        .orElseThrow(() -> new TimeSheetException(ErrorCode.NOT_FOUND_ERROR,
+                        .orElseThrow(() -> new TimeSheetException(NOT_FOUND_ERROR,
                                 String.format(ErrorMessage.PROJECT_NOT_FOUND, dto.getProjectCode())));
             }
 
@@ -130,14 +142,14 @@ public class TimesheetServiceImpl implements TimesheetService{
 
         TimesheetSummary summary = timesheetSummaryRepository.findById(id)
                 .orElseThrow(() -> new TimeSheetException(
-                        ErrorCode.NOT_FOUND_ERROR,
+                        NOT_FOUND_ERROR,
                         String.format(ErrorMessage.TIMESHEET_SUMMARY_NOT_FOUND,
                                 dto.getEmployeeCode(), dto.getWeekStart()))
                 );
 
         if (summary.getStatus() != TimeSheetStatus.DRAFT) {
             throw new TimeSheetException(
-                    ErrorCode.NOT_FOUND_ERROR,
+                    NOT_FOUND_ERROR,
                     ErrorMessage.STATUS_NOT_FOUND);
         }
         summary.setStatus(TimeSheetStatus.SUBMITTED);
@@ -172,7 +184,7 @@ public class TimesheetServiceImpl implements TimesheetService{
 
         TimesheetSummary summary = timesheetSummaryRepository.findById(id)
                 .orElseThrow(() -> new TimeSheetException(
-                        ErrorCode.NOT_FOUND_ERROR,
+                        NOT_FOUND_ERROR,
                         String.format(ErrorMessage.TIMESHEET_SUMMARY_NOT_FOUND,
                                 dto.getEmployeeCode(), dto.getWeekStart()))
                 );
@@ -269,7 +281,7 @@ public class TimesheetServiceImpl implements TimesheetService{
         TimesheetSummary summary = timesheetSummaryRepository
                 .findByIdEmployeeCodeAndIdWeekStart(employeeCode, weekStart)
                 .orElseThrow(() -> new TimeSheetException(
-                        ErrorCode.NOT_FOUND_ERROR,
+                        NOT_FOUND_ERROR,
                         String.format(ErrorMessage.TIMESHEET_SUMMARY_NOT_FOUND, employeeCode, weekStart)
                 ));
 
@@ -363,10 +375,7 @@ public class TimesheetServiceImpl implements TimesheetService{
 
         timesheetSummaryRepository.saveAll(summaries);
 
-        return String.format(MessageConstants.APPROVED_ALL_TIMESHEETS_FOR_WEEK,
-                summaries.size(),
-                approvalRequest.getWeekStart(),
-                approvalRequest.getManagerCode());
+        return MessageConstants.APPROVED_ALL_TIMESHEETS_FOR_WEEK;
     }
 
 
@@ -389,7 +398,7 @@ public class TimesheetServiceImpl implements TimesheetService{
         TimesheetSummary summary = timesheetSummaryRepository
                 .findByIdEmployeeCodeAndIdWeekStart(employeeCode, weekStart)
                 .orElseThrow(() -> new TimeSheetException(
-                        ErrorCode.NOT_FOUND_ERROR,
+                        NOT_FOUND_ERROR,
                         String.format(ErrorMessage.TIMESHEET_SUMMARY_NOT_FOUND, employeeCode, weekStart)
                 ));
         return summary.getStatus();
@@ -438,6 +447,237 @@ public class TimesheetServiceImpl implements TimesheetService{
             return ((java.sql.Date) date).toLocalDate();
         }
         return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+    }
+
+    @Override
+    @Transactional
+    public PagedResponse<ManagerApprovalRequestDto> getEmployeesTimesheetUnderManager(
+            String managerCode,
+            int year,
+            int month,
+            int offset,
+            int limit,
+            List<FilterRequest> filters,
+            List<SortRequest> sorts) {
+
+        /* ---------- paging ---------- */
+        if (offset < 0) offset = 0;
+        if (limit  <= 0) limit  = 10;
+        int page = offset / limit;
+
+        /* ---------- convert embedded-ID filters ---------- */
+        List<Specification<TimesheetSummary>> extraSpecs = new ArrayList<>();
+
+        if (filters != null) {
+            for (Iterator<FilterRequest> it = filters.iterator(); it.hasNext(); ) {
+                FilterRequest f = it.next();
+                switch (f.getField()) {
+                    case "year", "timesheetYear", "id.timesheetYear" -> {
+                        extraSpecs.add((root, q, cb) ->
+                                cb.equal(root.get("id").get("timesheetYear"),
+                                        Integer.valueOf(f.getValue())));
+                        it.remove();
+                    }
+                    case "month", "timesheetMonth", "id.timesheetMonth" -> {
+                        extraSpecs.add((root, q, cb) ->
+                                cb.equal(root.get("id").get("timesheetMonth"),
+                                        Integer.valueOf(f.getValue())));
+                        it.remove();
+                    }
+                    case "employeeCode", "id.employeeCode" -> {
+                        extraSpecs.add((root, q, cb) ->
+                                cb.equal(root.get("id").get("employeeCode"),
+                                        f.getValue()));
+                        it.remove();
+                    }
+                    case "weekStart", "id.weekStart" -> {
+                        extraSpecs.add((root, q, cb) ->
+                                cb.equal(root.get("id").get("weekStart"),
+                                        java.sql.Date.valueOf(f.getValue())));
+                        it.remove();
+                    }
+                }
+            }
+        }
+
+        /* ---------- always sort by employeeCode ASC ---------- */
+        Sort sort = Sort.by(Sort.Direction.ASC, "id.employeeCode");
+        Pageable pageable = PageRequest.of(page, limit, sort);
+
+        Specification<TimesheetSummary> yearMonthSpec = (root, q, cb) -> cb.and(
+                cb.equal(root.get("id").get("timesheetYear"),  year),
+                cb.equal(root.get("id").get("timesheetMonth"), month)
+        );
+
+        List<String> employeeCodes = Optional.ofNullable(
+                        identityServiceClient.getEmployeesUnderManager(managerCode).getBody())
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(UserIdentityDto::getEmployeeCode)
+                .toList();
+
+        if (employeeCodes.isEmpty()) {
+            return new PagedResponse<>(List.of(), 0, limit, 0);
+        }
+
+        Specification<TimesheetSummary> employeeSpec = (root, q, cb) ->
+                root.get("id").get("employeeCode").in(employeeCodes);
+
+        /* ---------- dynamic spec for remaining filters ---------- */
+        Specification<TimesheetSummary> dynamicSpec =
+                new FilterSpecificationBuilder<TimesheetSummary>().build(filters);
+
+        /* ---------- combine all specs ---------- */
+        Specification<TimesheetSummary> finalSpec = Specification
+                .where(yearMonthSpec)
+                .and(employeeSpec)
+                .and(dynamicSpec);
+
+        for (Specification<TimesheetSummary> sp : extraSpecs) {
+            finalSpec = finalSpec.and(sp);
+        }
+
+        /* ---------- query ---------- */
+        Page<TimesheetSummary> summaryPage =
+                timesheetSummaryRepository.findAll(finalSpec, pageable);
+
+        if (summaryPage.isEmpty()) {
+            throw new TimeSheetException(
+                    NOT_FOUND_ERROR,
+                    ErrorMessage.NO_TIMESHEET_SUMMARIES_FOUND
+            );
+        }
+
+        List<ManagerApprovalRequestDto> content = summaryPage.getContent().stream()
+                .map(s -> {
+                    ManagerApprovalRequestDto dto = new ManagerApprovalRequestDto();
+                    dto.setEmployeeCode(s.getId().getEmployeeCode());
+                    dto.setTimesheetYear(s.getId().getTimesheetYear());
+                    dto.setTimesheetMonth(s.getId().getTimesheetMonth());
+                    dto.setWeekStart(s.getId().getWeekStart());
+                    dto.setHours(s.getTotalHours());
+                    dto.setManagerCode(managerCode);
+                    dto.setApprove(s.getStatus() == TimeSheetStatus.APPROVED);
+                    return dto;
+                })
+                .toList();
+
+        return new PagedResponse<>(
+                content,
+                summaryPage.getNumber(),
+                summaryPage.getSize(),
+                summaryPage.getTotalElements()
+        );
+    }
+
+
+    @Override
+    @Transactional
+    public PagedResponse<ManagerApprovalRequestDto> getEmployeesTimesheet(
+            int year,
+            int month,
+            int offset,
+            int limit,
+            List<FilterRequest> filters,
+            List<SortRequest> sorts) {
+
+        if (offset < 0) offset = 0;
+        if (limit <= 0) limit = 10;
+        int page = offset / limit;
+
+        List<Specification<TimesheetSummary>> extraSpecs = new ArrayList<>();
+
+        if (filters != null) {
+            for (Iterator<FilterRequest> it = filters.iterator(); it.hasNext(); ) {
+                FilterRequest f = it.next();
+                switch (f.getField()) {
+                    case "year", "timesheetYear", "id.timesheetYear" -> {
+                        extraSpecs.add((root, q, cb) ->
+                                cb.equal(root.get("id").get("timesheetYear"), Integer.valueOf(f.getValue())));
+                        it.remove();
+                    }
+                    case "month", "timesheetMonth", "id.timesheetMonth" -> {
+                        extraSpecs.add((root, q, cb) ->
+                                cb.equal(root.get("id").get("timesheetMonth"), Integer.valueOf(f.getValue())));
+                        it.remove();
+                    }
+                    case "employeeCode", "id.employeeCode" -> {
+                        extraSpecs.add((root, q, cb) ->
+                                cb.equal(root.get("id").get("employeeCode"), f.getValue()));
+                        it.remove();
+                    }
+                    case "weekStart", "id.weekStart" -> {
+                        extraSpecs.add((root, q, cb) ->
+                                cb.equal(root.get("id").get("weekStart"), java.sql.Date.valueOf(f.getValue())));
+                        it.remove();
+                    }
+                }
+            }
+        }
+
+        // Fixed sort by employeeCode
+        Sort sort = Sort.by(Sort.Direction.ASC, "id.employeeCode");
+        Pageable pageable = PageRequest.of(page, limit, sort);
+
+        Specification<TimesheetSummary> yearMonthSpec = (root, q, cb) -> cb.and(
+                cb.equal(root.get("id").get("timesheetYear"), year),
+                cb.equal(root.get("id").get("timesheetMonth"), month)
+        );
+
+        List<String> employeeCodes = Optional.ofNullable(identityServiceClient.getAllUsersList().getBody())
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(m -> m.get("employeeCode"))
+                .toList();
+
+        if (employeeCodes.isEmpty()) {
+            return new PagedResponse<>(List.of(), 0, limit, 0);
+        }
+
+        Specification<TimesheetSummary> employeeSpec = (root, q, cb) ->
+                root.get("id").get("employeeCode").in(employeeCodes);
+
+        Specification<TimesheetSummary> dynamicSpec =
+                new FilterSpecificationBuilder<TimesheetSummary>().build(filters);
+
+        Specification<TimesheetSummary> finalSpec = Specification
+                .where(yearMonthSpec)
+                .and(employeeSpec)
+                .and(dynamicSpec);
+
+        for (Specification<TimesheetSummary> sp : extraSpecs) {
+            finalSpec = finalSpec.and(sp);
+        }
+
+        Page<TimesheetSummary> summaryPage =
+                timesheetSummaryRepository.findAll(finalSpec, pageable);
+
+        if (summaryPage.isEmpty()) {
+            throw new TimeSheetException(
+                    NOT_FOUND_ERROR,
+                    ErrorMessage.NO_TIMESHEET_SUMMARIES_FOUND
+            );
+        }
+
+        List<ManagerApprovalRequestDto> content = summaryPage.getContent().stream()
+                .map(s -> {
+                    ManagerApprovalRequestDto dto = new ManagerApprovalRequestDto();
+                    dto.setEmployeeCode(s.getId().getEmployeeCode());
+                    dto.setTimesheetYear(s.getId().getTimesheetYear());
+                    dto.setTimesheetMonth(s.getId().getTimesheetMonth());
+                    dto.setWeekStart(s.getId().getWeekStart());
+                    dto.setHours(s.getTotalHours());
+                    dto.setApprove(s.getStatus() == TimeSheetStatus.APPROVED);
+                    return dto;
+                })
+                .toList();
+
+        return new PagedResponse<>(
+                content,
+                summaryPage.getNumber(),
+                summaryPage.getSize(),
+                summaryPage.getTotalElements()
+        );
     }
 
 }

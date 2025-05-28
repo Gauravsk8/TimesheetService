@@ -50,8 +50,27 @@ public class ProjectManagementController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/projects/roles/{roleId}")
+    @RequiresKeycloakAuthorization(resource = "tms:adminccmpm", scope = "tms:project:add")
+    public ResponseEntity<String> updateRolesInProject(@Valid @RequestBody ProjectRolesRequestDto dto, @PathVariable Long roleID){
+        String response=projectManagementService.updateRolesInProject(dto, roleID);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/projects/roles/{roleId}")
+    @RequiresKeycloakAuthorization(resource = "tms:adminccmpm", scope = "tms:project:add")
+    public ResponseEntity<String> getRolesInProject(@PathVariable Long roleID){
+        String response=projectManagementService.getRolesInProject(roleID);
+        return ResponseEntity.ok(response);
+    }
+    @DeleteMapping("/projects/roles/{roleId}")
+    @RequiresKeycloakAuthorization(resource = "tms:adminccmpm", scope = "tms:project:add")
+    public ResponseEntity<String> deleteRolesInProject(@PathVariable Long roleID){
+        String response=projectManagementService.deleteRolesInProject(roleID);
+        return ResponseEntity.ok(response);
+    }
     //Get all ProjectRoles
-    @GetMapping("/projects/roles")
+    @GetMapping("/projects/roles/")
     @RequiresKeycloakAuthorization(resource = "tms:adminccmpm", scope = "tms:project:get")
     public ResponseEntity<List<String>> getAllRoleNames() {
         List<String> roleNames = projectManagementService.getAllRoleNames();
