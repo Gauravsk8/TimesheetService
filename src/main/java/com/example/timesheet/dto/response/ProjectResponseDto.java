@@ -1,12 +1,10 @@
 package com.example.timesheet.dto.response;
 
 
-import com.example.timesheet.enums.Status;
 import lombok.Builder;
 import lombok.Data;
 
 import java.sql.Timestamp;
-import java.time.LocalDate;
 
 @Data
 @Builder

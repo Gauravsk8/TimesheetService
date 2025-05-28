@@ -1,13 +1,15 @@
 package com.example.timesheet.controller;
 
 import com.example.timesheet.common.annotations.RequiresKeycloakAuthorization;
+import com.example.timesheet.common.constants.AuthorizationConstants;
 import com.example.timesheet.service.TimesheetReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.sql.Date;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
 
 @RestController
@@ -17,7 +19,7 @@ public class TimesheetReportController {
 
     private final TimesheetReportService timesheetReportService;
     @GetMapping("/timesheets/report")
-    @RequiresKeycloakAuthorization(resource = "manager:com", scope = "com:manager:get")
+    @RequiresKeycloakAuthorization(resource = AuthorizationConstants.MANAGER_COM, scope = AuthorizationConstants.COM_MANAGER_GET)
     public ResponseEntity<String> downloadReport(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month,

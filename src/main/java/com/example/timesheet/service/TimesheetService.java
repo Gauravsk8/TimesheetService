@@ -1,15 +1,14 @@
 package com.example.timesheet.service;
 
-import com.example.timesheet.dto.pagenationDto.FilterRequest;
-import com.example.timesheet.dto.pagenationDto.SortRequest;
-import com.example.timesheet.dto.pagenationDto.response.PagedResponse;
+import com.example.timesheet.dto.paginationdto.FilterRequest;
+import com.example.timesheet.dto.paginationdto.SortRequest;
+import com.example.timesheet.dto.paginationdto.response.PagedResponse;
 import com.example.timesheet.dto.request.DailyTimesheetDto;
 import com.example.timesheet.dto.request.ManagerApprovalRequestDto;
 import com.example.timesheet.dto.request.TimesheetSummaryDto;
-import com.example.timesheet.dto.response.*;
-import com.example.timesheet.dto.response.EmployeeDashboard.EmployeeDashboardDto;
-import com.example.timesheet.dto.response.ManagerDashboard.ManagerDashboardDto;
-import com.example.timesheet.dto.response.ProjectManagerDashboard.ProjectManagerDashboardDTO;
+import com.example.timesheet.dto.response.DailyTimesheetResponseWithStatus;
+import com.example.timesheet.dto.response.TimesheetMatrixRowResponseDto;
+
 import com.example.timesheet.enums.TimeSheetStatus;
 import com.example.timesheet.exceptions.TimeSheetException;
 

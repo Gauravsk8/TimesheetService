@@ -1,8 +1,16 @@
 package com.example.timesheet.models;
 
 import com.example.timesheet.common.audit.Audit;
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Column;
+import jakarta.persistence.GeneratedValue;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
 @Entity

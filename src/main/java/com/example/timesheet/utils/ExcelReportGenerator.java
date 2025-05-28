@@ -50,7 +50,9 @@ public class ExcelReportGenerator {
         // Table header
         Row header = sheet.createRow(rowIdx++);
         String[] columns = {"S.No", "Date", "Day", "Task Description", "Time Worked (in Hr)"};
-        for (int i = 0; i < columns.length; i++) header.createCell(i).setCellValue(columns[i]);
+        for (int i = 0; i < columns.length; i++){
+            header.createCell(i).setCellValue(columns[i]);
+        }
 
         DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("EEEE");
 

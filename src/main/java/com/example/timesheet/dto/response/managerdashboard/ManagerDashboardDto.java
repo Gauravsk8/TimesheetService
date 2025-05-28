@@ -1,4 +1,4 @@
-package com.example.timesheet.dto.response.ManagerDashboard;
+package com.example.timesheet.dto.response.managerdashboard;
 
 
 import lombok.AllArgsConstructor;

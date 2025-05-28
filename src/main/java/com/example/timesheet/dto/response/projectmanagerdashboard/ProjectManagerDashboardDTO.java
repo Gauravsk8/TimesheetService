@@ -1,9 +1,13 @@
-package com.example.timesheet.dto.response.ProjectManagerDashboard;
+package com.example.timesheet.dto.response.projectmanagerdashboard;
 
-import lombok.*;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Map;
 
 @Getter
 @Setter

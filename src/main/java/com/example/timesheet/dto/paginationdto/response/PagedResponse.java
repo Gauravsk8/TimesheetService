@@ -1,4 +1,4 @@
-package com.example.timesheet.dto.pagenationDto.response;
+package com.example.timesheet.dto.paginationdto.response;
 
 import lombok.Getter;
 import lombok.Setter;

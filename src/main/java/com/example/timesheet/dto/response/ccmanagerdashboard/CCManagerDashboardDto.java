@@ -1,4 +1,4 @@
-package com.example.timesheet.dto.response.CCManagerDashboard;
+package com.example.timesheet.dto.response.ccmanagerdashboard;
 
 
 import lombok.Builder;

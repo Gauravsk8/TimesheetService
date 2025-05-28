@@ -1,4 +1,4 @@
-package com.example.timesheet.dto.pagenationDto;
+package com.example.timesheet.dto.paginationdto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;

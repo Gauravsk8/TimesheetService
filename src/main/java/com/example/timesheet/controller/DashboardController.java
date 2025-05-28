@@ -1,16 +1,19 @@
 package com.example.timesheet.controller;
 
 import com.example.timesheet.common.annotations.RequiresKeycloakAuthorization;
-import com.example.timesheet.dto.response.CCManagerDashboard.CCManagerDashboardDto;
-import com.example.timesheet.dto.response.EmployeeDashboard.EmployeeDashboardDto;
-import com.example.timesheet.dto.response.ManagerDashboard.ManagerDashboardDto;
-import com.example.timesheet.dto.response.ProjectManagerDashboard.ProjectManagerDashboardDTO;
+import com.example.timesheet.common.constants.AuthorizationConstants;
+import com.example.timesheet.dto.response.ccmanagerdashboard.CCManagerDashboardDto;
+import com.example.timesheet.dto.response.employeedashboard.EmployeeDashboardDto;
+import com.example.timesheet.dto.response.managerdashboard.ManagerDashboardDto;
+import com.example.timesheet.dto.response.projectmanagerdashboard.ProjectManagerDashboardDTO;
 import com.example.timesheet.service.DashboardService;
-import com.example.timesheet.service.Serviceimpl.DashboardServiceImpl;
-import com.example.timesheet.service.TimesheetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/tms")
@@ -18,9 +21,8 @@ import org.springframework.web.bind.annotation.*;
 public class DashboardController {
     private final DashboardService dashboardService;
 
-    //ManagerDashBoard
     @GetMapping("/manager-dashboard/{managerCode}")
-    @RequiresKeycloakAuthorization(resource = "tms:rm", scope = "tms:dashboard:get")
+    @RequiresKeycloakAuthorization(resource = AuthorizationConstants.TMS_RM, scope = AuthorizationConstants.DASHBOARD_GET)
     public ResponseEntity<ManagerDashboardDto> getManagerDashboard(
             @PathVariable String managerCode,
             @RequestParam int year,
@@ -30,9 +32,8 @@ public class DashboardController {
         return ResponseEntity.ok(dashboard);
     }
 
-    //Employee Dashboard
     @GetMapping("/employee-dashboard/{employeeCode}")
-    @RequiresKeycloakAuthorization(resource = "tms:employee", scope = "tms:dashboard:get")
+    @RequiresKeycloakAuthorization(resource = AuthorizationConstants.TMS_EMPLOYEE, scope = AuthorizationConstants.DASHBOARD_GET)
     public ResponseEntity<EmployeeDashboardDto> getEmployeeDashboard(
             @PathVariable String employeeCode,
             @RequestParam int year,
@@ -40,15 +41,14 @@ public class DashboardController {
         return ResponseEntity.ok(dashboardService.getEmployeeDashboard(employeeCode, year, month));
     }
 
-    //ProjectManager Dashboard
     @GetMapping("/project-manager-dashboard/{projectManagerCode}")
-    @RequiresKeycloakAuthorization(resource = "tms:pm", scope = "tms:dashboard:get")
+    @RequiresKeycloakAuthorization(resource = AuthorizationConstants.TMS_PM, scope = AuthorizationConstants.DASHBOARD_GET)
     public ProjectManagerDashboardDTO getDashboard(@PathVariable String projectManagerCode) {
         return dashboardService.getPmDashboard(projectManagerCode);
     }
 
     @GetMapping("/ccm-dashboard/{managerCode}")
-    @RequiresKeycloakAuthorization(resource = "tms:ccm", scope = "tms:dashboard:get")
+    @RequiresKeycloakAuthorization(resource = AuthorizationConstants.TMS_CCM, scope = AuthorizationConstants.DASHBOARD_GET)
     public ResponseEntity<CCManagerDashboardDto> getDashboard(
             @PathVariable String managerCode,
             @RequestParam(required = false) Integer year,
@@ -57,8 +57,4 @@ public class DashboardController {
         CCManagerDashboardDto dashboard = dashboardService.getCCManagerDashboard(managerCode, year, month);
         return ResponseEntity.ok(dashboard);
     }
-
-
-
 }
-

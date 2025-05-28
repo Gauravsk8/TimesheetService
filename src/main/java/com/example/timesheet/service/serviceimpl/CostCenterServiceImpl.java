@@ -1,18 +1,18 @@
-package com.example.timesheet.service.Serviceimpl;
+package com.example.timesheet.service.serviceimpl;
 
 
 
 import com.example.timesheet.common.constants.ErrorCode;
 import com.example.timesheet.common.constants.ErrorMessage;
 import com.example.timesheet.common.constants.MessageConstants;
-import com.example.timesheet.dto.pagenationDto.FilterRequest;
-import com.example.timesheet.dto.pagenationDto.SortRequest;
-import com.example.timesheet.dto.pagenationDto.response.PagedResponse;
+import com.example.timesheet.dto.paginationdto.FilterRequest;
+import com.example.timesheet.dto.paginationdto.SortRequest;
+import com.example.timesheet.dto.paginationdto.response.PagedResponse;
 import com.example.timesheet.exceptions.TimeSheetException;
 import com.example.timesheet.utils.FilterSpecificationBuilder;
 import com.example.timesheet.utils.SortUtil;
-import com.example.timesheet.Repository.CostCenterRepository;
-import com.example.timesheet.Repository.ProjectRepository;
+import com.example.timesheet.repository.CostCenterRepository;
+import com.example.timesheet.repository.ProjectRepository;
 import com.example.timesheet.client.IdentityServiceClient;
 import com.example.timesheet.dto.request.CostCenterDto;
 import com.example.timesheet.dto.response.CostCenterResponseDto;
@@ -37,7 +37,6 @@ public class CostCenterServiceImpl implements CostCenterService {
     private final ProjectRepository projectRepository;
     private final IdentityServiceClient identityServiceClient;
 
-    private final String CostCenterManager = "CostCenterManager";
 
     @Override
     public String createCostCenter(CostCenterDto dto) throws TimeSheetException {
@@ -58,8 +57,8 @@ public class CostCenterServiceImpl implements CostCenterService {
             List<FilterRequest> filters,
             List<SortRequest> sorts) {
 
-        int safeOffset = (offset == null) ? 0 : offset;
-        int safeLimit = (limit == null || limit <= 0) ? 10 : limit;
+        int safeOffset = offset == null ? 0 : offset;
+        int safeLimit = limit == null || limit <= 0 ? 10 : limit;
         int page = safeOffset / safeLimit;
 
         Pageable pageable = PageRequest.of(page, safeLimit, SortUtil.getSort(sorts));

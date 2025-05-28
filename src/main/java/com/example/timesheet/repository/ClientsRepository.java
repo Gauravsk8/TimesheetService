@@ -1,4 +1,4 @@
-package com.example.timesheet.Repository;
+package com.example.timesheet.repository;
 
 import com.example.timesheet.models.Clients;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,7 +9,6 @@ import java.util.Optional;
 
 public interface ClientsRepository extends JpaRepository<Clients, Long>, JpaSpecificationExecutor<Clients> {
 
-    // ✅ Corrected method
     List<Clients> findByIsActiveTrue();
 
 

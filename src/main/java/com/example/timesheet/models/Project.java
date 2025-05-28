@@ -2,13 +2,26 @@ package com.example.timesheet.models;
 
 
 import com.example.timesheet.common.audit.Audit;
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Column;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.CascadeType;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
 
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -44,7 +57,7 @@ public class Project extends Audit {
     private Timestamp endDate;
 
     @ManyToOne
-    @JoinColumn(name="clients_id")
+    @JoinColumn(name = "clients_id")
     private Clients clients;
 
     @ManyToOne(fetch = FetchType.LAZY)

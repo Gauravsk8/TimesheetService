@@ -36,7 +36,7 @@ public class TimesheetReminder {
                     String employeeCode = user.get("employeeCode");
 
                     if (email != null && !email.isBlank()) {
-                        String name = (firstName != null && !firstName.isBlank()) ? firstName : employeeCode;
+                        String name = firstName != null && !firstName.isBlank() ? firstName : employeeCode;
 
                         Map<String, String> variables = Map.of("name", name);
 

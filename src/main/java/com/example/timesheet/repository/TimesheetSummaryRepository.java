@@ -1,6 +1,5 @@
-package com.example.timesheet.Repository;
+package com.example.timesheet.repository;
 
-import com.example.timesheet.dto.response.ProjectManagerDashboard.ProjectManagerDashboardDTO;
 import com.example.timesheet.models.TimesheetSummary;
 import com.example.timesheet.keys.TimesheetSummaryId;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,7 +10,6 @@ import org.springframework.data.repository.query.Param;
 import java.sql.Date;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public interface TimesheetSummaryRepository extends JpaRepository<TimesheetSummary, TimesheetSummaryId>, JpaSpecificationExecutor<TimesheetSummary> {
@@ -20,11 +18,10 @@ public interface TimesheetSummaryRepository extends JpaRepository<TimesheetSumma
 
     List<TimesheetSummary> findByIdEmployeeCodeAndIdTimesheetYearAndIdTimesheetMonth(
             String employeeCode, Integer year, Integer month);
-    Optional<TimesheetSummary>  findByIdEmployeeCodeAndIdWeekStart(String employeeCode, Date weekStart);
-    List<TimesheetSummary> findByIdEmployeeCodeInAndIdWeekStartAndIdTimesheetYearAndIdTimesheetMonth(List<String> employeeCodes, Date weekStart, Integer timesheetYear, Integer timesheetMonth);
-    List<TimesheetSummary> findByIdEmployeeCodeInAndIdTimesheetYearAndIdTimesheetMonth(
-
-            Collection<String> employeeCodes, Integer year, Integer month);
+    Optional<TimesheetSummary> findByIdEmployeeCodeAndIdWeekStart(String employeeCode, Date weekStart);
+    List<TimesheetSummary> findByIdEmployeeCodeInAndIdWeekStartAndIdTimesheetYearAndIdTimesheetMonth(
+            List<String> employeeCodes, Date weekStart, Integer timesheetYear, Integer timesheetMonth);
+    List<TimesheetSummary> findByIdEmployeeCodeInAndIdTimesheetYearAndIdTimesheetMonth(Collection<String> employeeCodes, Integer year, Integer month);
 
     @Query(value = """
     SELECT dts.project_code, ts.status, COUNT(*)

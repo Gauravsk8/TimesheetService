@@ -1,19 +1,21 @@
-package com.example.timesheet.service.Serviceimpl;
+package com.example.timesheet.service.serviceimpl;
 
-import com.example.timesheet.Repository.DailyTimeSheetRepository;
-import com.example.timesheet.Repository.ProjectEmployeeRepository;
-import com.example.timesheet.Repository.ProjectRepository;
-import com.example.timesheet.Repository.TimesheetSummaryRepository;
+import com.example.timesheet.dto.response.ccmanagerdashboard.CCManagerDashboardDto;
+import com.example.timesheet.dto.response.employeedashboard.EmployeeDashboardDto;
+import com.example.timesheet.dto.response.employeedashboard.EmployeeStatusSummaryDto;
+import com.example.timesheet.dto.response.managerdashboard.ManagerDashboardDto;
+import com.example.timesheet.dto.response.managerdashboard.ManagerDashboardResponseDto;
+import com.example.timesheet.dto.response.managerdashboard.ManagerDashboardSummaryDto;
+import com.example.timesheet.dto.response.projectmanagerdashboard.ProjectManagerDashboardDTO;
+import com.example.timesheet.repository.DailyTimeSheetRepository;
+import com.example.timesheet.repository.ProjectEmployeeRepository;
+import com.example.timesheet.repository.ProjectRepository;
+import com.example.timesheet.repository.TimesheetSummaryRepository;
 import com.example.timesheet.client.IdentityServiceClient;
 import com.example.timesheet.dto.request.WeeklyTimeSheetEntryDto;
-import com.example.timesheet.dto.response.CCManagerDashboard.CCManagerDashboardDto;
-import com.example.timesheet.dto.response.EmployeeDashboard.EmployeeDashboardDto;
-import com.example.timesheet.dto.response.EmployeeDashboard.EmployeeStatusSummaryDto;
-import com.example.timesheet.dto.response.ManagerDashboard.ManagerDashboardDto;
-import com.example.timesheet.dto.response.ManagerDashboard.ManagerDashboardResponseDto;
-import com.example.timesheet.dto.response.ManagerDashboard.ManagerDashboardSummaryDto;
-import com.example.timesheet.dto.response.ProjectManagerDashboard.ProjectManagerDashboardDTO;
 import com.example.timesheet.dto.response.TimesheetSummaryResponseDto;
+
+
 import com.example.timesheet.dto.response.UserIdentityDto;
 import com.example.timesheet.enums.TimeSheetStatus;
 import com.example.timesheet.models.DailyTimeSheet;
@@ -27,8 +29,13 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Calendar;
+import java.util.Optional;
+import java.util.Comparator;
+import java.util.ArrayList;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -118,9 +125,9 @@ public class DashboardServiceImpl implements DashboardService {
         List<ProjectManagerDashboardDTO.ProjectStatusSummaryDTO> statusSummary =
                 rawStatusSummary.stream()
                         .map(row -> new ProjectManagerDashboardDTO.ProjectStatusSummaryDTO(
-                                (String) row[0],             // projectCode
-                                (String) row[1],             // status
-                                ((Number) row[2]).longValue() // count
+                                (String) row[0],
+                                (String) row[1],
+                                ((Number) row[2]).longValue()
                         ))
                         .toList();
 
@@ -153,7 +160,9 @@ public class DashboardServiceImpl implements DashboardService {
         ResponseEntity<List<UserIdentityDto>> response = identityServiceClient.getEmployeesUnderManager(managerCode);
         List<UserIdentityDto> employees = Optional.ofNullable(response.getBody()).orElse(List.of());
 
-        if (employees.isEmpty()) return new ManagerDashboardDto(List.of(), List.of());
+        if (employees.isEmpty()) {
+            return new ManagerDashboardDto(List.of(), List.of());
+        }
 
         Map<String, UserIdentityDto> empMap = employees.stream()
                 .collect(Collectors.toMap(UserIdentityDto::getEmployeeCode, e -> e));
@@ -167,7 +176,8 @@ public class DashboardServiceImpl implements DashboardService {
                 .collect(Collectors.groupingBy(TimesheetSummary::getStatus, Collectors.counting()));
 
         Map<TimeSheetStatus, Double> statusHourMap = summaries.stream()
-                .collect(Collectors.groupingBy(TimesheetSummary::getStatus, Collectors.summingDouble(ts -> ts.getTotalHours() == null ? 0 : ts.getTotalHours())));
+                .collect(Collectors.groupingBy(TimesheetSummary::getStatus,
+                        Collectors.summingDouble(ts -> ts.getTotalHours() == null ? 0 : ts.getTotalHours())));
 
         List<ManagerDashboardSummaryDto> statusSummary = statusCountMap.entrySet().stream()
                 .map(entry -> new ManagerDashboardSummaryDto(
@@ -247,7 +257,7 @@ public class DashboardServiceImpl implements DashboardService {
         List<Object[]> rawTimesheetStatus = timesheetSummaryRepository.countTimesheetStatusByManager(managerCode, year, month);
         Map<String, Long> timesheetStatusSummary = rawTimesheetStatus.stream()
                 .collect(Collectors.toMap(
-                        row -> (String) row[0],   // status
+                        row -> (String) row[0],
                         row -> ((Number) row[1]).longValue()
                 ));
 

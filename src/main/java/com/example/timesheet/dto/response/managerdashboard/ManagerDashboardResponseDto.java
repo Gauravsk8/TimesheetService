@@ -1,4 +1,4 @@
-package com.example.timesheet.dto.response.ManagerDashboard;
+package com.example.timesheet.dto.response.managerdashboard;
 
 import com.example.timesheet.dto.request.WeeklyTimeSheetEntryDto;
 import lombok.AllArgsConstructor;

@@ -1,16 +1,16 @@
-package com.example.timesheet.service.Serviceimpl;
+package com.example.timesheet.service.serviceimpl;
 
 
 import com.example.timesheet.common.constants.ErrorCode;
 import com.example.timesheet.common.constants.ErrorMessage;
 import com.example.timesheet.common.constants.MessageConstants;
-import com.example.timesheet.dto.pagenationDto.FilterRequest;
-import com.example.timesheet.dto.pagenationDto.SortRequest;
-import com.example.timesheet.dto.pagenationDto.response.PagedResponse;
+import com.example.timesheet.dto.paginationdto.FilterRequest;
+import com.example.timesheet.dto.paginationdto.SortRequest;
+import com.example.timesheet.dto.paginationdto.response.PagedResponse;
 import com.example.timesheet.exceptions.TimeSheetException;
 import com.example.timesheet.utils.FilterSpecificationBuilder;
 import com.example.timesheet.utils.SortUtil;
-import com.example.timesheet.Repository.ClientsRepository;
+import com.example.timesheet.repository.ClientsRepository;
 import com.example.timesheet.dto.request.ClientDto;
 import com.example.timesheet.dto.response.ClientResponseDto;
 import com.example.timesheet.models.Clients;
@@ -50,8 +50,8 @@ public class ClientServiceImpl implements ClientService {
             List<SortRequest> sorts) {
 
         // Apply defaults if null
-        int safeOffset = (offset == null) ? 0 : offset;
-        int safeLimit = (limit == null || limit <= 0) ? 10 : limit;
+        int safeOffset = offset == null ? 0 : offset;
+        int safeLimit = limit == null || limit <= 0 ? 10 : limit;
 
         int page = safeOffset / safeLimit;
 

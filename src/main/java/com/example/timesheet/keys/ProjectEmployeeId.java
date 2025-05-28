@@ -14,10 +14,10 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class ProjectEmployeeId implements Serializable {
 
-    @Column(name = "projectCode",nullable = false)
+    @Column(name = "projectCode", nullable = false)
     private String projectCode;
 
-    @Column(name = "employeeCode",nullable = false)
+    @Column(name = "employeeCode", nullable = false)
     private String employeeCode;
 }
 

@@ -1,7 +1,6 @@
 package com.example.timesheet.dto.response;
 
 
-import com.example.timesheet.enums.Status;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,7 +12,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ClientResponseDto {
 
-    private Long id;             // optional - if you need it for update/view operations
+    private Long id;
     private String name;
     private String contactPerson;
     private String contactEmail;

@@ -34,7 +34,7 @@ public class FeignClientConfig {
             }
 
             // If no token in request context, fallback to client_credentials token
-            if (token == null || token.trim().isEmpty()) {
+            if (token == null || token.isBlank()) {
                 String accessToken = keycloakTokenProvider.getAccessToken();
                 if (accessToken != null) {
                     token = "Bearer " + accessToken;
@@ -42,7 +42,7 @@ public class FeignClientConfig {
             }
 
             // Set Authorization header if token is available
-            if (token != null && !token.trim().isEmpty()) {
+            if (token != null && !token.isBlank()) {
                 requestTemplate.header("Authorization", token);
             }
         };

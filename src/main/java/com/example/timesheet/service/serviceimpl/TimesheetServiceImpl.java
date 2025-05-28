@@ -1,50 +1,57 @@
-package com.example.timesheet.service.Serviceimpl;
+package com.example.timesheet.service.serviceimpl;
 
 
 import com.example.timesheet.client.IdentityServiceClient;
 import com.example.timesheet.common.constants.ErrorCode;
 import com.example.timesheet.common.constants.ErrorMessage;
 import com.example.timesheet.common.constants.MessageConstants;
-import com.example.timesheet.dto.pagenationDto.FilterRequest;
-import com.example.timesheet.dto.pagenationDto.SortRequest;
-import com.example.timesheet.dto.pagenationDto.response.PagedResponse;
-import com.example.timesheet.dto.request.*;
-import com.example.timesheet.dto.response.*;
-import com.example.timesheet.dto.response.EmployeeDashboard.EmployeeDashboardDto;
-import com.example.timesheet.dto.response.EmployeeDashboard.EmployeeStatusSummaryDto;
-import com.example.timesheet.dto.response.ManagerDashboard.ManagerDashboardDto;
-import com.example.timesheet.dto.response.ManagerDashboard.ManagerDashboardResponseDto;
-import com.example.timesheet.dto.response.ManagerDashboard.ManagerDashboardSummaryDto;
-import com.example.timesheet.dto.response.ProjectManagerDashboard.ProjectManagerDashboardDTO;
+import com.example.timesheet.dto.paginationdto.FilterRequest;
+import com.example.timesheet.dto.paginationdto.SortRequest;
+import com.example.timesheet.dto.paginationdto.response.PagedResponse;
+import com.example.timesheet.dto.request.DailyTimesheetDto;
+import com.example.timesheet.dto.request.DailyTimesheetRequestDto;
+import com.example.timesheet.dto.request.TimesheetSummaryDto;
+import com.example.timesheet.dto.request.ManagerApprovalRequestDto;
+import com.example.timesheet.dto.request.WeeklyTimeSheetEntryDto;
+import com.example.timesheet.dto.response.TimesheetMatrixRowResponseDto;
+import com.example.timesheet.dto.response.DailyTimesheetResponseWithStatus;
+import com.example.timesheet.dto.response.DailyTimeSheetResponseDto;
+import com.example.timesheet.dto.response.UserIdentityDto;
 import com.example.timesheet.enums.EntryType;
 import com.example.timesheet.enums.TimeSheetStatus;
 import com.example.timesheet.exceptions.TimeSheetException;
 import com.example.timesheet.keys.ProjectEmployeeId;
-import com.example.timesheet.models.*;
+import com.example.timesheet.models.Project;
+import com.example.timesheet.models.DailyTimeSheet;
+import com.example.timesheet.models.TimesheetSummary;
 import com.example.timesheet.keys.TimesheetSummaryId;
-import com.example.timesheet.Repository.*;
+import com.example.timesheet.repository.TimesheetSummaryRepository;
+import com.example.timesheet.repository.ProjectRepository;
+import com.example.timesheet.repository.DailyTimeSheetRepository;
+import com.example.timesheet.repository.ProjectEmployeeRepository;
 
 import com.example.timesheet.service.TimesheetService;
 import com.example.timesheet.utils.FilterSpecificationBuilder;
-import com.example.timesheet.utils.SortUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.sql.Date;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.LinkedHashMap;
+import java.util.Iterator;
+import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 import static com.example.timesheet.common.constants.ErrorCode.NOT_FOUND_ERROR;
@@ -58,6 +65,16 @@ public class TimesheetServiceImpl implements TimesheetService{
     private final ProjectRepository projectRepository;
     private final ProjectEmployeeRepository projectEmployeeRepository;
     private final IdentityServiceClient identityServiceClient;
+    public static final String TIMESHEET_YEAR = "timesheetYear";
+    public static final String TIMESHEET_MONTH = "timesheetMonth";
+    public static final String EMPLOYEE_CODE = "employeeCode";
+    public static final String WEEK_START = "weekStart";
+
+    // Composite ID fields (prefixed with "id.")
+    public static final String ID_TIMESHEET_YEAR = "id.timesheetYear";
+    public static final String ID_TIMESHEET_MONTH = "id.timesheetMonth";
+    public static final String ID_EMPLOYEE_CODE = "id.employeeCode";
+    public static final String ID_WEEK_START = "id.weekStart";
     private static final DateTimeFormatter WEEK_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy");
 
 
@@ -155,7 +172,7 @@ public class TimesheetServiceImpl implements TimesheetService{
         summary.setStatus(TimeSheetStatus.SUBMITTED);
         summary.setSubmittedDate(new Timestamp(System.currentTimeMillis()));
 
-        TimesheetSummary submitted=timesheetSummaryRepository.save(summary);
+        TimesheetSummary submitted = timesheetSummaryRepository.save(summary);
 
         LocalDate week = submitted.getId().getWeekStart().toLocalDate();
         String formattedWeekStart = week.format(WEEK_DATE_FORMATTER);
@@ -205,9 +222,8 @@ public class TimesheetServiceImpl implements TimesheetService{
                     boolean dateMatch = sheet.getWorkDate().toLocalDate().isEqual(requestDto.getWorkDate().toLocalDate());
                     boolean typeMatch = sheet.getEntryType() != null && sheet.getEntryType().name().equalsIgnoreCase(entryType.name());
 
-                    boolean projectMatch = (entryType == EntryType.PROJECT)
-                            ? (sheet.getProjectCode() != null && sheet.getProjectCode().trim().equals(requestDto.getProjectCode().trim()))
-                            : true;
+                    boolean projectMatch = entryType != EntryType.PROJECT || sheet.getProjectCode() != null && sheet.getProjectCode().trim()
+                            .equals(requestDto.getProjectCode().trim());
 
                     if (dateMatch && typeMatch && projectMatch) {
                         matched = true;
@@ -237,7 +253,7 @@ public class TimesheetServiceImpl implements TimesheetService{
                     newSheet.setEmployeeCode(dto.getEmployeeCode());
                     newSheet.setWorkDate(requestDto.getWorkDate());
                     newSheet.setEntryType(requestDto.getEntryType());
-                    if(requestDto.getEntryType()==EntryType.PROJECT) {
+                    if (requestDto.getEntryType() == EntryType.PROJECT) {
                         newSheet.setProjectCode(requestDto.getProjectCode());
                     }
                     newSheet.setTimesheetMonth(requestDto.getTimesheetMonth());
@@ -285,7 +301,7 @@ public class TimesheetServiceImpl implements TimesheetService{
                         String.format(ErrorMessage.TIMESHEET_SUMMARY_NOT_FOUND, employeeCode, weekStart)
                 ));
 
-        List<DailyTimeSheetResponseDto> dailyTimeSheetResponseDtos= dailyTimeSheetRepository
+        List<DailyTimeSheetResponseDto> dailyTimeSheetResponseDtos = dailyTimeSheetRepository
                 .findByEmployeeCodeAndWorkDateBetween(employeeCode, weekStart, weekEnd)
                 .stream()
                 .map(d -> {
@@ -442,7 +458,9 @@ public class TimesheetServiceImpl implements TimesheetService{
 
 
     private LocalDate toLocalDate(Date date) {
-        if (date == null) return null;
+        if (date == null){
+            return null;
+        }
         if (date instanceof java.sql.Date) {
             return ((java.sql.Date) date).toLocalDate();
         }
@@ -460,8 +478,12 @@ public class TimesheetServiceImpl implements TimesheetService{
             List<FilterRequest> filters,
             List<SortRequest> sorts) {
 
-        if (offset < 0) offset = 0;
-        if (limit <= 0) limit = 10;
+        if (offset < 0){
+            offset = 0;
+        }
+        if (limit <= 0){
+            limit = 10;
+        }
         int page = offset / limit;
 
         List<Specification<TimesheetSummary>> extraSpecs = new ArrayList<>();
@@ -469,28 +491,29 @@ public class TimesheetServiceImpl implements TimesheetService{
         if (filters != null) {
             for (Iterator<FilterRequest> it = filters.iterator(); it.hasNext(); ) {
                 FilterRequest f = it.next();
+                // In getEmployeesTimesheetUnderManager and getEmployeesTimesheet methods:
                 switch (f.getField()) {
-                    case "year", "timesheetYear", "id.timesheetYear" -> {
+                    case "year", TIMESHEET_YEAR, ID_TIMESHEET_YEAR -> {
                         extraSpecs.add((root, q, cb) ->
-                                cb.equal(root.get("id").get("timesheetYear"),
+                                cb.equal(root.get("id").get(TIMESHEET_YEAR),
                                         Integer.valueOf(f.getValue())));
                         it.remove();
                     }
-                    case "month", "timesheetMonth", "id.timesheetMonth" -> {
+                    case "month", TIMESHEET_MONTH, ID_TIMESHEET_MONTH -> {
                         extraSpecs.add((root, q, cb) ->
-                                cb.equal(root.get("id").get("timesheetMonth"),
+                                cb.equal(root.get("id").get(TIMESHEET_MONTH),
                                         Integer.valueOf(f.getValue())));
                         it.remove();
                     }
-                    case "employeeCode", "id.employeeCode" -> {
+                    case EMPLOYEE_CODE, ID_EMPLOYEE_CODE -> {
                         extraSpecs.add((root, q, cb) ->
-                                cb.equal(root.get("id").get("employeeCode"),
+                                cb.equal(root.get("id").get(EMPLOYEE_CODE),
                                         f.getValue()));
                         it.remove();
                     }
-                    case "weekStart", "id.weekStart" -> {
+                    case WEEK_START, ID_WEEK_START -> {
                         extraSpecs.add((root, q, cb) ->
-                                cb.equal(root.get("id").get("weekStart"),
+                                cb.equal(root.get("id").get(WEEK_START),
                                         java.sql.Date.valueOf(f.getValue())));
                         it.remove();
                     }
@@ -499,7 +522,7 @@ public class TimesheetServiceImpl implements TimesheetService{
         }
 
         // Get employees under manager
-        List<String> employeeCodes = Optional.ofNullable(
+        List<String> employeeCodes = Optional.of(
                         identityServiceClient.getEmployeesUnderManager(managerCode).getBody())
                 .orElse(Collections.emptyList())
                 .stream()
@@ -521,12 +544,12 @@ public class TimesheetServiceImpl implements TimesheetService{
 
         // Final spec for paged employees
         Specification<TimesheetSummary> yearMonthSpec = (root, q, cb) -> cb.and(
-                cb.equal(root.get("id").get("timesheetYear"), year),
-                cb.equal(root.get("id").get("timesheetMonth"), month)
+                cb.equal(root.get("id").get(TIMESHEET_YEAR), year),
+                cb.equal(root.get("id").get(TIMESHEET_MONTH), month)
         );
 
         Specification<TimesheetSummary> employeeSpec = (root, q, cb) ->
-                root.get("id").get("employeeCode").in(pagedEmployeeCodes);
+                root.get("id").get(EMPLOYEE_CODE).in(pagedEmployeeCodes);
 
         Specification<TimesheetSummary> dynamicSpec =
                 new FilterSpecificationBuilder<TimesheetSummary>().build(filters);
@@ -541,7 +564,7 @@ public class TimesheetServiceImpl implements TimesheetService{
         }
 
         List<TimesheetSummary> summaries =
-                timesheetSummaryRepository.findAll(finalSpec, Sort.by("id.employeeCode", "id.weekStart"));
+                timesheetSummaryRepository.findAll(finalSpec, Sort.by(ID_EMPLOYEE_CODE, ID_WEEK_START));
 
         if (summaries.isEmpty()) {
             throw new TimeSheetException(
@@ -583,8 +606,12 @@ public class TimesheetServiceImpl implements TimesheetService{
             List<FilterRequest> filters,
             List<SortRequest> sorts) {
 
-        if (offset < 0) offset = 0;
-        if (limit <= 0) limit = 10;
+        if (offset < 0){
+            offset = 0;
+        }
+        if (limit <= 0){
+            limit = 10;
+        }
         int page = offset / limit;
 
         List<Specification<TimesheetSummary>> extraSpecs = new ArrayList<>();
@@ -593,24 +620,28 @@ public class TimesheetServiceImpl implements TimesheetService{
             for (Iterator<FilterRequest> it = filters.iterator(); it.hasNext(); ) {
                 FilterRequest f = it.next();
                 switch (f.getField()) {
-                    case "year", "timesheetYear", "id.timesheetYear" -> {
+                    case "year", TIMESHEET_YEAR, ID_TIMESHEET_YEAR -> {
                         extraSpecs.add((root, q, cb) ->
-                                cb.equal(root.get("id").get("timesheetYear"), Integer.valueOf(f.getValue())));
+                                cb.equal(root.get("id").get(TIMESHEET_YEAR),
+                                        Integer.valueOf(f.getValue())));
                         it.remove();
                     }
-                    case "month", "timesheetMonth", "id.timesheetMonth" -> {
+                    case "month", TIMESHEET_MONTH, ID_TIMESHEET_MONTH -> {
                         extraSpecs.add((root, q, cb) ->
-                                cb.equal(root.get("id").get("timesheetMonth"), Integer.valueOf(f.getValue())));
+                                cb.equal(root.get("id").get(TIMESHEET_MONTH),
+                                        Integer.valueOf(f.getValue())));
                         it.remove();
                     }
-                    case "employeeCode", "id.employeeCode" -> {
+                    case EMPLOYEE_CODE, ID_EMPLOYEE_CODE -> {
                         extraSpecs.add((root, q, cb) ->
-                                cb.equal(root.get("id").get("employeeCode"), f.getValue()));
+                                cb.equal(root.get("id").get(EMPLOYEE_CODE),
+                                        f.getValue()));
                         it.remove();
                     }
-                    case "weekStart", "id.weekStart" -> {
+                    case WEEK_START, ID_WEEK_START -> {
                         extraSpecs.add((root, q, cb) ->
-                                cb.equal(root.get("id").get("weekStart"), java.sql.Date.valueOf(f.getValue())));
+                                cb.equal(root.get("id").get(WEEK_START),
+                                        java.sql.Date.valueOf(f.getValue())));
                         it.remove();
                     }
                 }
@@ -636,12 +667,12 @@ public class TimesheetServiceImpl implements TimesheetService{
         }
 
         Specification<TimesheetSummary> yearMonthSpec = (root, q, cb) -> cb.and(
-                cb.equal(root.get("id").get("timesheetYear"), year),
-                cb.equal(root.get("id").get("timesheetMonth"), month)
+                cb.equal(root.get("id").get(TIMESHEET_YEAR), year),
+                cb.equal(root.get("id").get(TIMESHEET_MONTH), month)
         );
 
         Specification<TimesheetSummary> employeeSpec = (root, q, cb) ->
-                root.get("id").get("employeeCode").in(pagedEmployeeCodes);
+                root.get("id").get(EMPLOYEE_CODE).in(pagedEmployeeCodes);
 
         Specification<TimesheetSummary> dynamicSpec =
                 new FilterSpecificationBuilder<TimesheetSummary>().build(filters);
@@ -656,7 +687,7 @@ public class TimesheetServiceImpl implements TimesheetService{
         }
 
         List<TimesheetSummary> summaries =
-                timesheetSummaryRepository.findAll(finalSpec, Sort.by("id.employeeCode", "id.weekStart"));
+                timesheetSummaryRepository.findAll(finalSpec, Sort.by(ID_EMPLOYEE_CODE, ID_WEEK_START));
 
         if (summaries.isEmpty()) {
             throw new TimeSheetException(

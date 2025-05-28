@@ -2,9 +2,9 @@ package com.example.timesheet.config;
 
 
 import com.example.timesheet.common.email.EmailProvider;
-import com.example.timesheet.common.email.service.serviceImpl.AwsSesEmailService;
-import com.example.timesheet.common.email.service.serviceImpl.DynamicEmailService;
-import com.example.timesheet.common.email.service.serviceImpl.JavaMailEmailService;
+import com.example.timesheet.common.email.service.serviceimpl.AwsSesEmailService;
+import com.example.timesheet.common.email.service.serviceimpl.DynamicEmailService;
+import com.example.timesheet.common.email.service.serviceimpl.JavaMailEmailService;
 import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

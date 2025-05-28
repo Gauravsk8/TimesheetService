@@ -1,4 +1,4 @@
-package com.example.timesheet.Repository;
+package com.example.timesheet.repository;
 
 import com.example.timesheet.models.Project;
 import org.springframework.data.jpa.repository.JpaRepository;

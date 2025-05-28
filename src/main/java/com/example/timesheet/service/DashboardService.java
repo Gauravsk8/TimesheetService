@@ -1,9 +1,10 @@
 package com.example.timesheet.service;
 
-import com.example.timesheet.dto.response.CCManagerDashboard.CCManagerDashboardDto;
-import com.example.timesheet.dto.response.EmployeeDashboard.EmployeeDashboardDto;
-import com.example.timesheet.dto.response.ManagerDashboard.ManagerDashboardDto;
-import com.example.timesheet.dto.response.ProjectManagerDashboard.ProjectManagerDashboardDTO;
+
+import com.example.timesheet.dto.response.ccmanagerdashboard.CCManagerDashboardDto;
+import com.example.timesheet.dto.response.employeedashboard.EmployeeDashboardDto;
+import com.example.timesheet.dto.response.managerdashboard.ManagerDashboardDto;
+import com.example.timesheet.dto.response.projectmanagerdashboard.ProjectManagerDashboardDTO;
 
 public interface DashboardService {
     ManagerDashboardDto getEmployeesTimesheetUnderManager(String managerCode, int year, int month);

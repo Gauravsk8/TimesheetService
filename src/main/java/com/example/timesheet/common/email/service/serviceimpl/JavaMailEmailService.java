@@ -1,4 +1,4 @@
-package com.example.timesheet.common.email.service.serviceImpl;
+package com.example.timesheet.common.email.service.serviceimpl;
 
 
 import com.example.timesheet.common.email.EmailProvider;

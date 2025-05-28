@@ -1,8 +1,8 @@
-package com.example.timesheet.service.Serviceimpl;
+package com.example.timesheet.service.serviceimpl;
 
 
-import com.example.timesheet.Repository.DailyTimeSheetRepository;
-import com.example.timesheet.Repository.ProjectRepository;
+import com.example.timesheet.repository.DailyTimeSheetRepository;
+import com.example.timesheet.repository.ProjectRepository;
 import com.example.timesheet.client.IdentityServiceClient;
 import com.example.timesheet.common.constants.ErrorCode;
 import com.example.timesheet.common.constants.ErrorMessage;
@@ -23,7 +23,13 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.TextStyle;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Locale;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.ArrayList;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -84,7 +90,9 @@ public class TimesheetReportServiceImpl implements TimesheetReportService {
 
                 for (String projCode : projectEmpMap.keySet()) {
                     Project project = projectRepository.findById(projCode).orElse(null);
-                    if (project == null) continue;
+                    if (project == null) {
+                        continue;
+                    }
 
                     String projectName = project.getTitle();
                     String managerName = getUserName(project.getProjectManagerCode());
@@ -120,7 +128,9 @@ public class TimesheetReportServiceImpl implements TimesheetReportService {
 
             for (String projCode : data.keySet()) {
                 Project project = projectRepository.findById(projCode).orElse(null);
-                if (project == null) continue;
+                if (project == null){
+                    continue;
+                }
 
                 String projectName = project.getTitle();
                 String managerName = getUserName(project.getProjectManagerCode());

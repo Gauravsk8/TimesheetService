@@ -1,15 +1,19 @@
-package com.example.timesheet.service.Serviceimpl;
+package com.example.timesheet.service.serviceimpl;
 
 import com.example.timesheet.common.constants.MessageConstants;
 import com.example.timesheet.common.constants.ErrorCode;
 import com.example.timesheet.common.constants.ErrorMessage;
-import com.example.timesheet.dto.pagenationDto.FilterRequest;
-import com.example.timesheet.dto.pagenationDto.SortRequest;
-import com.example.timesheet.dto.pagenationDto.response.PagedResponse;
+import com.example.timesheet.dto.paginationdto.FilterRequest;
+import com.example.timesheet.dto.paginationdto.SortRequest;
+import com.example.timesheet.dto.paginationdto.response.PagedResponse;
 import com.example.timesheet.exceptions.TimeSheetException;
 import com.example.timesheet.utils.FilterSpecificationBuilder;
 import com.example.timesheet.utils.SortUtil;
-import com.example.timesheet.Repository.*;
+import com.example.timesheet.repository.ProjectRepository;
+import com.example.timesheet.repository.ProjectEmployeeRepository;
+import com.example.timesheet.repository.ClientsRepository;
+import com.example.timesheet.repository.CostCenterRepository;
+import com.example.timesheet.repository.ProjectRolesRepository;
 import com.example.timesheet.client.IdentityServiceClient;
 import com.example.timesheet.dto.request.AssignEmployeesDto;
 import com.example.timesheet.dto.request.ProjectRolesRequestDto;
@@ -19,7 +23,11 @@ import com.example.timesheet.dto.response.ProjectEmployeeDto;
 import com.example.timesheet.dto.response.ProjectResponseDto;
 import com.example.timesheet.dto.response.ProjectWithEmployeesDto;
 import com.example.timesheet.keys.ProjectEmployeeId;
-import com.example.timesheet.models.*;
+import com.example.timesheet.models.Project;
+import com.example.timesheet.models.Clients;
+import com.example.timesheet.models.CostCenter;
+import com.example.timesheet.models.ProjectEmployee;
+import com.example.timesheet.models.ProjectRoles;
 import com.example.timesheet.service.ProjectManagementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -32,7 +40,6 @@ import org.springframework.stereotype.Service;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -46,7 +53,6 @@ public class ProjectManagementServiceImpl implements ProjectManagementService {
     private final ProjectEmployeeRepository projectEmployeeRepository;
     private final ProjectRolesRepository rolesInProjectRepository;
 
-    private final String PROJECT_MANAGER_ROLE = "ProjectManager";
     @Override
     public String createProject(ProjectDto dto) {
 
@@ -81,7 +87,7 @@ public class ProjectManagementServiceImpl implements ProjectManagementService {
     @Override
     public String createRolesInProject(ProjectRolesRequestDto dto) {
         boolean exists = rolesInProjectRepository.existsByRoleName(dto.getRoleName());
-        if(exists){
+        if (exists){
             throw new TimeSheetException(ErrorCode.CONFLICT_ERROR, ErrorMessage.PROJECT_ROLE_ALREADY_CREATED);
         }
         ProjectRoles newRole = new ProjectRoles();
@@ -125,8 +131,8 @@ public class ProjectManagementServiceImpl implements ProjectManagementService {
             List<FilterRequest> filters,
             List<SortRequest> sorts) {
 
-        int safeOffset = (offset == null || offset < 0) ? 0 : offset;
-        int safeLimit = (limit == null || limit <= 0) ? 10 : limit;
+        int safeOffset = offset == null || offset < 0 ? 0 : offset;
+        int safeLimit = limit == null || limit <= 0 ? 10 : limit;
         int page = safeOffset / safeLimit;
 
         Pageable pageable = PageRequest.of(page, safeLimit, SortUtil.getSort(sorts));
@@ -239,7 +245,7 @@ public class ProjectManagementServiceImpl implements ProjectManagementService {
                     } catch (Exception e) {
                         throw new TimeSheetException(ErrorCode.NOT_FOUND_ERROR, ErrorMessage.USER_NOT_FOUND + e.getMessage());
                     }
-                    String EmployeeKeycloakId = user.getBody().getKeycloakUserId();
+                    String employeeKeycloakId = user.getBody().getKeycloakUserId();
                     pe.setId(new ProjectEmployeeId(projectCode, emp.getEmployeeCode()));
                     pe.setProject(project);
                     pe.setStartDate(project.getStartDate());
@@ -277,8 +283,8 @@ public class ProjectManagementServiceImpl implements ProjectManagementService {
 
         if (!projectEmployeeRepository.existsByIdAndIsActiveTrue(id)) {
             throw new TimeSheetException(
-                    ErrorCode.NOT_FOUND_ERROR,  // Assuming this is the error code
-                    String.format(ErrorMessage.ASSIGNMENT_NOT_FOUND, projectCode, employeeCode)  // Assuming this error message exists
+                    ErrorCode.NOT_FOUND_ERROR,
+                    String.format(ErrorMessage.ASSIGNMENT_NOT_FOUND, projectCode, employeeCode)
             );
         }
 
@@ -328,7 +334,7 @@ public class ProjectManagementServiceImpl implements ProjectManagementService {
                         String.format(ErrorMessage.ASSIGNMENT_NOT_FOUND, projectCode, employeeCode)
                 ));
 
-        projectEmployee.setActive(newStatus);  // <-- set the new status
+        projectEmployee.setActive(newStatus);
         projectEmployeeRepository.save(projectEmployee);
 
         return String.format(MessageConstants.PROJECT_EMPLOYEE_STATUS_UPDATED, employeeCode, projectCode);
@@ -473,7 +479,7 @@ public class ProjectManagementServiceImpl implements ProjectManagementService {
                                        String projectCode) {
 
         Timestamp empStart = emp.getStartDate();
-        Timestamp empEnd   = emp.getEndDate(); // may be null
+        Timestamp empEnd = emp.getEndDate(); // may be null
 
         if (empStart == null) {
             throw new TimeSheetException(ErrorCode.VALIDATION_ERROR,

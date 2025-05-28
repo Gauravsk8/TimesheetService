@@ -1,14 +1,19 @@
 package com.example.timesheet.utils;
 
-import com.example.timesheet.dto.pagenationDto.SortRequest;
+import com.example.timesheet.dto.paginationdto.SortRequest;
 import org.springframework.data.domain.Sort;
 
-import java.util.*;
+import java.util.List;
+import java.util.Arrays;
+import java.util.Collections;
+
 import java.util.stream.Collectors;
 
 public class SortUtil {
     public static List<SortRequest> parseSort(String sortParam) {
-        if (sortParam == null || sortParam.isBlank()) return Collections.emptyList();
+        if (sortParam == null || sortParam.isBlank()){
+            return Collections.emptyList();
+        }
 
         return Arrays.stream(sortParam.split(","))
                 .map(field -> {

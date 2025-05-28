@@ -1,13 +1,23 @@
 package com.example.timesheet.models;
 
-
 import com.example.timesheet.common.audit.Audit;
 import com.example.timesheet.enums.EntryType;
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Column;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.FetchType;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
 import java.sql.Date;
 
 @Entity
@@ -25,12 +35,14 @@ import java.sql.Date;
                                 "timesheet_month",
                                 "workDate",
                                 "entryType",
-                                "projectCode"
+                                DailyTimeSheet.PROJECT_CODE
                         }
                 )
         }
 )
 public class DailyTimeSheet extends Audit {
+
+    public static final String PROJECT_CODE = "projectCode";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,11 +64,11 @@ public class DailyTimeSheet extends Audit {
     @Column(name = "entryType")
     private EntryType entryType;
 
-    @Column(name = "projectCode", nullable = true)
+    @Column(name = PROJECT_CODE, nullable = true)
     private String projectCode;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "projectCode", referencedColumnName = "projectCode", insertable = false, updatable = false)
+    @JoinColumn(name = PROJECT_CODE, referencedColumnName = PROJECT_CODE, insertable = false, updatable = false)
     private Project project;
 
     @Column(nullable = false)
@@ -68,4 +80,3 @@ public class DailyTimeSheet extends Audit {
     @Column
     private Boolean modifiedByManager = false;
 }
-

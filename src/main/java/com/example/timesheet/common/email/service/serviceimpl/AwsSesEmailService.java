@@ -1,4 +1,4 @@
-package com.example.timesheet.common.email.service.serviceImpl;
+package com.example.timesheet.common.email.service.serviceimpl;
 
 import com.example.timesheet.common.email.EmailProvider;
 import com.example.timesheet.common.email.EmailTemplateUtil;
@@ -6,7 +6,12 @@ import com.example.timesheet.common.email.service.EmailService;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.services.ses.SesClient;
-import software.amazon.awssdk.services.ses.model.*;
+import software.amazon.awssdk.services.ses.model.Destination;
+import software.amazon.awssdk.services.ses.model.Message;
+import software.amazon.awssdk.services.ses.model.Content;
+import software.amazon.awssdk.services.ses.model.Body;
+import software.amazon.awssdk.services.ses.model.SendEmailRequest;
+import software.amazon.awssdk.services.ses.model.SesException;
 
 import java.util.Map;
 

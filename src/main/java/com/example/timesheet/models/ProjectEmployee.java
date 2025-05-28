@@ -2,9 +2,19 @@ package com.example.timesheet.models;
 
 import com.example.timesheet.common.audit.Audit;
 import com.example.timesheet.keys.ProjectEmployeeId;
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Column;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.MapsId;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
 
@@ -23,7 +33,7 @@ public class ProjectEmployee extends Audit {
 
     @ManyToOne
     @MapsId("projectCode")
-    @JoinColumn(name = "project_code")  // Uses snake_case in DB
+    @JoinColumn(name = "project_code")
     private Project project;
 
 
@@ -31,10 +41,10 @@ public class ProjectEmployee extends Audit {
 
 
     @Column(name = "start_date")
-    private Timestamp startDate;  // When assignment begins
+    private Timestamp startDate;
 
     @Column(name = "end_date")
-    private Timestamp endDate;    // When assignment ends (nullable)
+    private Timestamp endDate;
 
     @Builder.Default
     @Column(name = "is_active")

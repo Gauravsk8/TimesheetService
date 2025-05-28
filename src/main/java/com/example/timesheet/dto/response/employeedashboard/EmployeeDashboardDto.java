@@ -1,4 +1,4 @@
-package com.example.timesheet.dto.response.EmployeeDashboard;
+package com.example.timesheet.dto.response.employeedashboard;
 
 
 import com.example.timesheet.dto.response.TimesheetSummaryResponseDto;

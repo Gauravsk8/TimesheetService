@@ -1,4 +1,4 @@
-package com.example.timesheet.Repository;
+package com.example.timesheet.repository;
 
 import com.example.timesheet.models.CostCenter;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,7 +11,6 @@ public interface CostCenterRepository extends JpaRepository<CostCenter, String>,
 
     List<CostCenter> findByCostCenterManagerCodeIgnoreCaseAndIsActiveTrue(String costCenterManagerCode);
 
-    // ✅ Fixed method name
     List<CostCenter> findByIsActiveTrue();
 
     Optional<CostCenter> findByCostCenterCodeAndIsActiveTrue(String costCenterCode);

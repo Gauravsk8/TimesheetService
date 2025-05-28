@@ -1,8 +1,8 @@
 package com.example.timesheet.service;
 
-import com.example.timesheet.dto.pagenationDto.FilterRequest;
-import com.example.timesheet.dto.pagenationDto.SortRequest;
-import com.example.timesheet.dto.pagenationDto.response.PagedResponse;
+import com.example.timesheet.dto.paginationdto.FilterRequest;
+import com.example.timesheet.dto.paginationdto.SortRequest;
+import com.example.timesheet.dto.paginationdto.response.PagedResponse;
 import com.example.timesheet.dto.request.CostCenterDto;
 import com.example.timesheet.dto.response.CostCenterResponseDto;
 import com.example.timesheet.dto.response.ProjectResponseDto;

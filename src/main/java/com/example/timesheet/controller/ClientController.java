@@ -1,19 +1,27 @@
 package com.example.timesheet.controller;
 
 import com.example.timesheet.common.annotations.RequiresKeycloakAuthorization;
-import com.example.timesheet.dto.pagenationDto.FilterRequest;
-import com.example.timesheet.dto.pagenationDto.SortRequest;
-import com.example.timesheet.dto.pagenationDto.response.PagedResponse;
+import com.example.timesheet.dto.paginationdto.FilterRequest;
+import com.example.timesheet.dto.paginationdto.SortRequest;
+import com.example.timesheet.dto.paginationdto.response.PagedResponse;
 import com.example.timesheet.exceptions.TimeSheetException;
 import com.example.timesheet.utils.FilterUtil;
 import com.example.timesheet.utils.SortUtil;
 import com.example.timesheet.dto.request.ClientDto;
 import com.example.timesheet.dto.response.ClientResponseDto;
 import com.example.timesheet.service.ClientService;
+import com.example.timesheet.common.constants.AuthorizationConstants;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PutMapping;
 
 import java.util.List;
 import java.util.Map;
@@ -27,7 +35,7 @@ public class ClientController {
 
     //Create Client
     @PostMapping("/clients")
-    @RequiresKeycloakAuthorization(resource = "tms:admin", scope = "tms:client:add")
+    @RequiresKeycloakAuthorization(resource = AuthorizationConstants.TMS_ADMIN, scope = AuthorizationConstants.CLIENT_ADD)
     public ResponseEntity<String> createClient(@Valid @RequestBody ClientDto clientDto) {
         String response = clientService.createClient(clientDto);
         return ResponseEntity.ok(response);
@@ -35,7 +43,7 @@ public class ClientController {
 
     //Get All Client
     @GetMapping("/clients")
-    @RequiresKeycloakAuthorization(resource = "tms:adminccmpm", scope = "tms:client:get")
+    @RequiresKeycloakAuthorization(resource = AuthorizationConstants.TMS_ADMIN_CCMPM, scope = AuthorizationConstants.CLIENT_GET)
     public ResponseEntity<PagedResponse<ClientResponseDto>> getAllClients(
             @RequestParam int offset,
             @RequestParam int limit,
@@ -50,7 +58,7 @@ public class ClientController {
 
     //Get Client By ID
     @GetMapping("/clients/{id}")
-    @RequiresKeycloakAuthorization(resource = "tms:admin", scope = "tms:client:get")
+    @RequiresKeycloakAuthorization(resource = AuthorizationConstants.TMS_ADMIN, scope = AuthorizationConstants.CLIENT_GET)
     public ResponseEntity<ClientResponseDto> getClientById(@PathVariable Long id) {
         return clientService.getClientById(id)
                 .map(ResponseEntity::ok)
@@ -59,8 +67,8 @@ public class ClientController {
 
     //Update Client
     @PutMapping("/clients/{id}")
-    @RequiresKeycloakAuthorization(resource = "tms:admin", scope = "tms:client:update")
-    public ResponseEntity<String> updateClient(@PathVariable Long id,@Valid @RequestBody ClientDto clientDto) {
+    @RequiresKeycloakAuthorization(resource = AuthorizationConstants.TMS_ADMIN, scope = AuthorizationConstants.CLIENT_UPDATE)
+    public ResponseEntity<String> updateClient(@PathVariable Long id, @Valid @RequestBody ClientDto clientDto) {
         try {
             String updatedClient = clientService.updateClient(id, clientDto);
             return ResponseEntity.ok(updatedClient);
@@ -71,7 +79,7 @@ public class ClientController {
     
     //Delete Client
     @PutMapping("/clients/{id}/status")
-    @RequiresKeycloakAuthorization(resource = "tms:admin", scope = "tms:client:update")
+    @RequiresKeycloakAuthorization(resource = AuthorizationConstants.TMS_ADMIN, scope = AuthorizationConstants.CLIENT_UPDATE)
     public ResponseEntity<String> updateClientStatus(
             @PathVariable Long id,
             @RequestParam boolean active) {
@@ -81,7 +89,7 @@ public class ClientController {
     }
 
     @GetMapping("/clients/all")
-    @RequiresKeycloakAuthorization(resource = "tms:adminccmpm", scope = "tms:client:get")
+    @RequiresKeycloakAuthorization(resource = AuthorizationConstants.TMS_ADMIN_CCMPM, scope = AuthorizationConstants.CLIENT_GET)
     public ResponseEntity<List<ClientResponseDto>> getAllClients() {
         List<ClientResponseDto> response = clientService.getAllClientsProject();
         return ResponseEntity.ok(response);

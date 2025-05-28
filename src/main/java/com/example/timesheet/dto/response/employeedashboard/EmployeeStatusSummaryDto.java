@@ -1,4 +1,4 @@
-package com.example.timesheet.dto.response.EmployeeDashboard;
+package com.example.timesheet.dto.response.employeedashboard;
 
 
 import com.example.timesheet.enums.TimeSheetStatus;
@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class EmployeeStatusSummaryDto {
     private TimeSheetStatus status;
-    private long count;        // Number of weeks
-    private double totalHours; // Total hours logged
+    private long count;
+    private double totalHours;
 }

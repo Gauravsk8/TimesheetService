@@ -1,5 +1,4 @@
-// DailyTimeSheetRepository.java
-package com.example.timesheet.Repository;
+package com.example.timesheet.repository;
 
 import com.example.timesheet.enums.EntryType;
 import com.example.timesheet.models.DailyTimeSheet;
@@ -7,7 +6,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.*;
+import java.util.List;
+import java.util.Date;
+import java.util.Optional;
+import java.util.Set;
+
 
 public interface DailyTimeSheetRepository extends JpaRepository<DailyTimeSheet, Long> {
 
